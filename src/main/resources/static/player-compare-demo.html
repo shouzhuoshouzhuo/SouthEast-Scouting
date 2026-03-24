@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SouthEast Scouting - 球员对比 Demo</title>
+    <link rel="stylesheet" href="/css/player-compare-demo.css" />
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+</head>
+<body>
+<div class="page">
+    <header class="page-header">
+        <h1>球员能力对比</h1>
+        <p>最多支持 3 人同屏对比（Percentile Rank vs 同位置）</p>
+    </header>
+
+    <section class="filter-panel card">
+        <div class="filter-grid">
+            <label>
+                联赛
+                <select id="leagueSelect"></select>
+            </label>
+            <label>
+                赛季
+                <select id="seasonSelect"></select>
+            </label>
+            <label>
+                位置
+                <select id="positionSelect"></select>
+            </label>
+            <label class="search-wrap">
+                球员搜索
+                <input id="playerSearchInput" type="text" placeholder="输入 full name 或部分名..." autocomplete="off" />
+                <ul id="suggestionList" class="suggestion-list hidden" role="listbox" aria-label="球员候选列表"></ul>
+            </label>
+        </div>
+        <div class="hint-row">
+            <span id="selectedCount">已选 0 / 3</span>
+            <span id="warningText" class="warning"></span>
+        </div>
+    </section>
+
+    <section class="player-cards" id="playerCards"></section>
+
+    <section class="chart-panel card">
+        <div class="chart-head">
+            <h2>雷达图对比</h2>
+            <button id="retryButton" class="ghost-btn hidden" type="button">重试</button>
+        </div>
+
+        <div id="stateBox" class="state-box"></div>
+
+        <div class="chart-layout">
+            <div id="radarChart" class="chart"></div>
+            <aside class="metric-list" id="metricList"></aside>
+        </div>
+    </section>
+</div>
+
+<script src="/js/mock-data.js"></script>
+<script src="/js/player-compare-demo.js"></script>
+</body>
+</html>
+

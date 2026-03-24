@@ -1,0 +1,263 @@
+:root {
+    --bg: #0d1017;
+    --panel: #151b26;
+    --muted: #95a1b3;
+    --text: #ebf1ff;
+    --border: #2b3548;
+    --warning: #f9cc4e;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: radial-gradient(circle at top, #131b2a 0%, var(--bg) 35%);
+    color: var(--text);
+}
+
+.page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 24px;
+}
+
+.page-header h1 {
+    margin: 0 0 6px;
+    font-size: 30px;
+}
+
+.page-header p {
+    margin: 0 0 18px;
+    color: var(--muted);
+}
+
+.card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: rgba(22, 29, 44, 0.86);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    padding: 16px;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+label {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+select,
+input {
+    width: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: #0f1522;
+    color: var(--text);
+    outline: none;
+}
+
+select:focus,
+input:focus {
+    border-color: #5fa8ff;
+}
+
+.search-wrap {
+    position: relative;
+}
+
+.suggestion-list {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 6px);
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #0f1522;
+    max-height: 220px;
+    overflow: auto;
+    z-index: 10;
+}
+
+.suggestion-item {
+    padding: 8px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.suggestion-item small {
+    color: var(--muted);
+}
+
+.suggestion-item.active,
+.suggestion-item:hover {
+    background: rgba(95, 168, 255, 0.2);
+}
+
+.hidden {
+    display: none !important;
+}
+
+.hint-row {
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+}
+
+.warning {
+    color: var(--warning);
+}
+
+.player-cards {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(210px, 1fr));
+    gap: 12px;
+}
+
+.player-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(19, 24, 36, 0.95);
+    padding: 12px;
+}
+
+.color-bar {
+    width: 100%;
+    height: 5px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.player-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    align-items: center;
+}
+
+.player-name {
+    margin: 0;
+    font-size: 22px;
+}
+
+.player-meta {
+    margin: 8px 0 0;
+    color: var(--muted);
+    line-height: 1.35;
+}
+
+.remove-btn {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    color: var(--text);
+    background: transparent;
+    cursor: pointer;
+}
+
+.chart-panel {
+    margin-top: 16px;
+}
+
+.chart-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chart-head h2 {
+    margin: 0 0 8px;
+}
+
+.ghost-btn {
+    border: 1px solid var(--border);
+    color: var(--text);
+    background: transparent;
+    border-radius: 8px;
+    padding: 7px 11px;
+    cursor: pointer;
+}
+
+.state-box {
+    min-height: 28px;
+    color: var(--muted);
+    margin-bottom: 8px;
+}
+
+.chart-layout {
+    display: grid;
+    grid-template-columns: minmax(460px, 1fr) 320px;
+    gap: 12px;
+    align-items: start;
+}
+
+.chart {
+    min-height: 640px;
+}
+
+.metric-list {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(15, 21, 34, 0.75);
+    padding: 12px;
+}
+
+.metric-list h3 {
+    margin: 0 0 10px;
+    font-size: 16px;
+}
+
+.metric-item {
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+}
+
+.metric-item:hover {
+    border-color: var(--border);
+    background: rgba(95, 168, 255, 0.08);
+}
+
+.metric-label {
+    font-weight: 600;
+}
+
+.metric-desc {
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 13px;
+}
+
+@media (max-width: 1120px) {
+    .filter-grid {
+        grid-template-columns: repeat(2, minmax(140px, 1fr));
+    }
+
+    .chart-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .chart {
+        min-height: 560px;
+    }
+
+    .player-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
