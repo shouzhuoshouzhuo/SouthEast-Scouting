@@ -1,10 +1,15 @@
 :root {
-    --bg: #0d1017;
-    --panel: #151b26;
-    --muted: #95a1b3;
-    --text: #ebf1ff;
-    --border: #2b3548;
-    --warning: #f9cc4e;
+    --bg: #1e453e;
+    --panel: #0f2922;
+    --muted: #aecbb6;
+    --text: #ffffff;
+    --border: rgba(204, 255, 0, 0.15);
+    --warning: #ffcb2b;
+    --accent: #ccff00; /* Neon Lime - Goal-line tech color */
+    --accent-hover: #b3e600;
+    --card-bg: rgba(15, 41, 34, 0.8);
+    --grass-light: #2d6a4f;
+    --grass-dark: #1b4332;
 }
 
 * {
@@ -13,33 +18,109 @@
 
 body {
     margin: 0;
-    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
-    background: radial-gradient(circle at top, #131b2a 0%, var(--bg) 35%);
+    font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #1b4332;
+    /* 模拟球场草坪条纹 */
+    background-image:
+        linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+        linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+        repeating-linear-gradient(
+            90deg,
+            var(--grass-dark),
+            var(--grass-dark) 100px,
+            var(--grass-light) 100px,
+            var(--grass-light) 200px
+        );
+    background-attachment: fixed;
     color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
 }
 
 .page {
     max-width: 1280px;
     margin: 0 auto;
-    padding: 24px;
+    padding: 32px 24px;
+    animation: fadeIn 0.6s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .page-header h1 {
-    margin: 0 0 6px;
-    font-size: 30px;
+    margin: 0 0 8px;
+    font-size: 42px;
+    font-weight: 800;
+    font-style: italic;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #ffffff, #ccff00);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -1px;
+    text-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
 .page-header p {
-    margin: 0 0 18px;
+    margin: 0 0 24px;
     color: var(--muted);
+    font-size: 16px;
+    font-weight: 300;
 }
 
 .card {
     border: 1px solid var(--border);
-    border-radius: 12px;
-    background: rgba(22, 29, 44, 0.86);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
-    padding: 16px;
+    border-radius: 16px;
+    background: var(--card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    padding: 24px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    position: relative;
+    overflow: visible; /* Fix suggestion list cutoff problem */
+}
+
+/* 增加卡片角落的装饰，类似球场标记 */
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 40px;
+    height: 40px;
+    border-top: 2px solid var(--accent);
+    border-left: 2px solid var(--accent);
+    border-top-left-radius: 12px;
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 1; /* Ensure corner decorations are above background but below interactivity */
+}
+
+.card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 40px;
+    height: 40px;
+    border-bottom: 2px solid var(--accent);
+    border-right: 2px solid var(--accent);
+    border-bottom-right-radius: 12px;
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.card:hover {
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    border-color: rgba(204, 255, 0, 0.4);
+}
+
+.filter-panel {
+    position: relative;
+    z-index: 30;
 }
 
 .filter-grid {
@@ -53,23 +134,29 @@ label {
     flex-direction: column;
     gap: 8px;
     color: var(--muted);
-    font-size: 13px;
+    font-size: 14px;
+    font-weight: 500;
 }
 
 select,
 input {
     width: 100%;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 12px;
-    background: #0f1522;
+    border-radius: 10px;
+    padding: 12px 14px;
+    background: rgba(10, 30, 25, 0.6);
     color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
     outline: none;
+    transition: all 0.2s ease;
 }
 
 select:focus,
 input:focus {
-    border-color: #5fa8ff;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(204, 255, 0, 0.2);
+    background: rgba(15, 41, 34, 0.9);
 }
 
 .search-wrap {
@@ -85,26 +172,30 @@ input:focus {
     padding: 6px;
     list-style: none;
     border: 1px solid var(--border);
-    border-radius: 8px;
-    background: #0f1522;
-    max-height: 220px;
+    border-radius: 10px;
+    background: #0f2922;
+    max-height: 240px;
     overflow: auto;
-    z-index: 10;
+    z-index: 200;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
 .suggestion-item {
-    padding: 8px;
-    border-radius: 6px;
+    padding: 10px 12px;
+    border-radius: 8px;
     cursor: pointer;
+    transition: background 0.2s;
 }
 
 .suggestion-item small {
     color: var(--muted);
+    font-size: 12px;
 }
 
 .suggestion-item.active,
 .suggestion-item:hover {
-    background: rgba(95, 168, 255, 0.2);
+    background: rgba(204, 255, 0, 0.15);
+    color: var(--accent);
 }
 
 .hidden {
@@ -120,27 +211,44 @@ input:focus {
 
 .warning {
     color: var(--warning);
+    font-weight: 500;
 }
 
 .player-cards {
-    margin-top: 14px;
+    margin-top: 20px;
     display: grid;
     grid-template-columns: repeat(3, minmax(210px, 1fr));
-    gap: 12px;
+    gap: 16px;
 }
 
 .player-card {
     border: 1px solid var(--border);
-    border-radius: 10px;
-    background: rgba(19, 24, 36, 0.95);
-    padding: 12px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(20, 60, 45, 0.9), rgba(10, 30, 20, 0.9));
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
+    animation: zoomIn 0.4s ease-out backwards;
+}
+
+@keyframes zoomIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.player-card:hover {
+    transform: translateY(-8px) rotate(1deg);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.4);
+    border-color: var(--accent);
 }
 
 .color-bar {
-    width: 100%;
-    height: 5px;
-    border-radius: 5px;
-    margin-bottom: 10px;
+    width: 40px;
+    height: 6px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    box-shadow: 0 0 10px currentColor;
 }
 
 .player-row {
@@ -152,26 +260,44 @@ input:focus {
 
 .player-name {
     margin: 0;
-    font-size: 22px;
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
 }
 
 .player-meta {
     margin: 8px 0 0;
     color: var(--muted);
-    line-height: 1.35;
+    line-height: 1.5;
+    font-size: 14px;
 }
 
 .remove-btn {
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 4px 8px;
-    color: var(--text);
-    background: transparent;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.1);
     cursor: pointer;
+    transition: all 0.2s;
+    font-weight: bold;
+}
+
+.remove-btn:hover {
+    background: #ff4d4f;
+    color: white;
+    transform: rotate(90deg) scale(1.1);
+    box-shadow: 0 0 10px rgba(255, 77, 79, 0.5);
 }
 
 .chart-panel {
-    margin-top: 16px;
+    margin-top: 24px;
+    position: relative;
+    z-index: 1;
 }
 
 .chart-head {
@@ -182,15 +308,25 @@ input:focus {
 
 .chart-head h2 {
     margin: 0 0 8px;
+    font-size: 24px;
+    font-weight: 600;
 }
 
 .ghost-btn {
-    border: 1px solid var(--border);
+    border: 1px solid var(--muted);
     color: var(--text);
     background: transparent;
     border-radius: 8px;
-    padding: 7px 11px;
+    padding: 8px 16px;
     cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.ghost-btn:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: var(--text);
 }
 
 .state-box {
@@ -213,7 +349,7 @@ input:focus {
 .metric-list {
     border: 1px solid var(--border);
     border-radius: 10px;
-    background: rgba(15, 21, 34, 0.75);
+    background: rgba(15, 30, 25, 0.6);
     padding: 12px;
 }
 
@@ -229,18 +365,40 @@ input:focus {
 }
 
 .metric-item:hover {
-    border-color: var(--border);
-    background: rgba(95, 168, 255, 0.08);
+    border-color: var(--accent);
+    background: rgba(204, 255, 0, 0.05);
+    color: var(--accent);
 }
 
-.metric-label {
-    font-weight: 600;
+/* 足球互动元素样式 */
+#interactiveBall {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    font-size: 60px;
+    cursor: pointer;
+    user-select: none;
+    z-index: 100;
+    transition: transform 0.1s ease-out;
+    filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+    animation: float 3s ease-in-out infinite;
 }
 
-.metric-desc {
-    margin-top: 4px;
-    color: var(--muted);
-    font-size: 13px;
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes kick {
+    0% { transform: scale(1) rotate(0deg); }
+    20% { transform: scale(0.8) rotate(-20deg); }
+    50% { transform: scale(1.5) rotate(720deg) translate(-500px, -500px); opacity: 0; }
+    51% { transform: scale(0) translate(0, 0); opacity: 0; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.kicked {
+    animation: kick 1.2s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards !important;
 }
 
 @media (max-width: 1120px) {
@@ -260,4 +418,3 @@ input:focus {
         grid-template-columns: 1fr;
     }
 }
-

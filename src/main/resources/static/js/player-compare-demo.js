@@ -1,5 +1,5 @@
 (function () {
-    const palette = ["#65B8FF", "#FF4A4A", "#2DC5B5"];
+    const palette = ['#ff3b30', '#ccff00', '#5ac8fa', '#ffcc00']; // Red, Lime, Blue, Yellow - Jersey Colors
 
     const state = {
         filters: { league: "全部", season: "全部", position: "MF" },
@@ -12,24 +12,52 @@
         hasError: false
     };
 
-    const dom = {
-        leagueSelect: document.getElementById("leagueSelect"),
-        seasonSelect: document.getElementById("seasonSelect"),
-        positionSelect: document.getElementById("positionSelect"),
-        playerSearchInput: document.getElementById("playerSearchInput"),
-        suggestionList: document.getElementById("suggestionList"),
-        selectedCount: document.getElementById("selectedCount"),
-        warningText: document.getElementById("warningText"),
-        playerCards: document.getElementById("playerCards"),
-        stateBox: document.getElementById("stateBox"),
-        radarChart: document.getElementById("radarChart"),
-        metricList: document.getElementById("metricList"),
-        retryButton: document.getElementById("retryButton")
-    };
+    let dom = {};
 
     const data = window.ScoutingMockData;
 
+    function cacheDomRefs() {
+        dom = {
+            leagueSelect: document.getElementById("leagueSelect"),
+            seasonSelect: document.getElementById("seasonSelect"),
+            positionSelect: document.getElementById("positionSelect"),
+            playerSearchInput: document.getElementById("playerSearchInput"),
+            suggestionList: document.getElementById("suggestionList"),
+            selectedCount: document.getElementById("selectedCount"),
+            warningText: document.getElementById("warningText"),
+            playerCards: document.getElementById("playerCards"),
+            stateBox: document.getElementById("stateBox"),
+            radarChart: document.getElementById("radarChart"),
+            metricList: document.getElementById("metricList"),
+            retryButton: document.getElementById("retryButton"),
+            interactiveBall: document.getElementById("interactiveBall")
+        };
+    }
+
+    function initChart() {
+        if (!dom.radarChart) {
+            setError("图表容器不存在，无法渲染雷达图。");
+            return false;
+        }
+        if (!window.echarts) {
+            setError("图表组件加载失败，请检查网络后点击重试。");
+            return false;
+        }
+        if (state.chart) {
+            return true;
+        }
+        state.chart = window.echarts.init(dom.radarChart, 'dark', { renderer: 'canvas' });
+        window.addEventListener("resize", function () {
+            if (state.chart) {
+                state.chart.resize();
+            }
+        });
+        clearError();
+        return true;
+    }
+
     function init() {
+        cacheDomRefs();
         if (!data || !Array.isArray(data.players)) {
             setError("初始化失败：未找到 mock 数据。");
             return;
@@ -38,10 +66,34 @@
         fillSelect(dom.seasonSelect, data.seasons, state.filters.season);
         fillSelect(dom.positionSelect, data.positions, state.filters.position);
         bindEvents();
+        bindSoccerBall();
         renderMetricList();
-        state.chart = echarts.init(dom.radarChart);
+        initChart();
         renderAll();
-        window.addEventListener("resize", () => state.chart && state.chart.resize());
+    }
+
+    function bindSoccerBall() {
+        if (!dom.interactiveBall) {
+            return;
+        }
+
+        // Simple parallax effect
+        document.addEventListener('mousemove', function (e) {
+            if (dom.interactiveBall.classList.contains('kicked')) {
+                return;
+            }
+            const x = (window.innerWidth - e.pageX) / 50;
+            const y = (window.innerHeight - e.pageY) / 50;
+            dom.interactiveBall.style.transform = "translate(" + x + "px, " + y + "px)";
+        });
+
+        // Kicking effect
+        dom.interactiveBall.addEventListener('click', function () {
+            dom.interactiveBall.classList.add('kicked');
+            setTimeout(function () {
+                dom.interactiveBall.classList.remove('kicked');
+            }, 2000);
+        });
     }
 
     function fillSelect(selectEl, values, defaultValue) {
@@ -111,7 +163,9 @@
 
         dom.retryButton.addEventListener("click", function () {
             state.hasError = false;
-            renderAll();
+            if (initChart()) {
+                renderAll();
+            }
         });
     }
 
@@ -242,6 +296,10 @@
 
     function renderRadar() {
         if (!state.chart) {
+            if (!state.hasError) {
+                showState("图表组件未就绪，请点击“重试”。");
+                dom.retryButton.classList.remove("hidden");
+            }
             return;
         }
 
@@ -271,41 +329,85 @@
                     };
                 });
 
-                state.chart.setOption({
-                    backgroundColor: "transparent",
+                var option = {
+                    backgroundColor: 'transparent',
                     color: palette,
                     tooltip: {
-                        trigger: "item",
-                        formatter: function (params) {
-                            const lines = params.value.map(function (v, i) {
-                                return data.metricCatalog[i].label + ": " + v;
-                            });
-                            return "<b>" + params.name + "</b><br/>" + lines.join("<br/>");
+                        trigger: 'item',
+                        backgroundColor: 'rgba(15, 20, 32, 0.9)',
+                        borderColor: '#232b3e',
+                        textStyle: {
+                            color: '#fff',
+                            fontFamily: 'Outfit'
                         }
                     },
                     legend: {
-                        top: 8,
-                        textStyle: { color: "#d2ddf5" }
+                        data: seriesData.map(d => d.name),
+                        bottom: 5,
+                        textStyle: {
+                            color: '#8b99ae',
+                            fontFamily: 'Outfit',
+                            fontSize: 14
+                        }
                     },
                     radar: {
-                        center: ["45%", "56%"],
-                        radius: "68%",
-                        splitNumber: 5,
-                        axisName: { color: "#dbe5ff", fontSize: 12 },
                         indicator: indicators,
-                        splitArea: { areaStyle: { color: ["rgba(92,115,148,0.06)"] } },
-                        splitLine: { lineStyle: { color: "rgba(181,201,232,0.35)" } },
-                        axisLine: { lineStyle: { color: "rgba(181,201,232,0.2)" } }
-                    },
-                    series: [
-                        {
-                            type: "radar",
-                            data: seriesData,
-                            symbol: "circle",
-                            symbolSize: 4
+                        shape: 'polygon',
+                        splitNumber: 5,
+                        axisName: {
+                            color: '#f3ffcf',
+                            fontFamily: 'Outfit',
+                            fontSize: 13,
+                            fontWeight: 600,
+                            formatter: function (val) {
+                                return val;
+                            }
+                        },
+                        splitLine: {
+                            lineStyle: {
+                                color: [
+                                    'rgba(204, 255, 0, 0.25)',
+                                    'rgba(204, 255, 0, 0.22)',
+                                    'rgba(204, 255, 0, 0.19)',
+                                    'rgba(204, 255, 0, 0.16)',
+                                    'rgba(204, 255, 0, 0.13)'
+                                ]
+                            }
+                        },
+                        splitArea: {
+                            show: true,
+                            areaStyle: {
+                                color: [
+                                    'rgba(204, 255, 0, 0.03)',
+                                    'rgba(255, 255, 255, 0.015)'
+                                ]
+                            }
+                        },
+                        axisLine: {
+                            lineStyle: {
+                                color: 'rgba(204, 255, 0, 0.22)'
+                            }
                         }
-                    ]
-                }, true);
+                    },
+                    series: [{
+                        name: '能力对比 (Percentile Rank)',
+                        type: 'radar',
+                        data: seriesData,
+                        symbol: 'circle',
+                        symbolSize: 6,
+                        itemStyle: {
+                            borderWidth: 2
+                        },
+                        lineStyle: {
+                            width: 3
+                        },
+                        areaStyle: {
+                            opacity: 0.15
+                        }
+                    }]
+                };
+
+                state.chart.setOption(option, true);
                 showState("已加载：可点击图例临时隐藏/显示球员曲线。");
                 clearError();
             } catch (err) {
@@ -335,6 +437,5 @@
         return "rgba(" + r + "," + g + "," + b + "," + alpha + ")";
     }
 
-    init();
+    document.addEventListener("DOMContentLoaded", init);
 })();
-

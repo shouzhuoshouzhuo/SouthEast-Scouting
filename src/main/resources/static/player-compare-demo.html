@@ -5,7 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SouthEast Scouting - 球员对比 Demo</title>
     <link rel="stylesheet" href="/css/player-compare-demo.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+    <script>
+        if (!window.echarts) {
+            document.write('<script src="https://unpkg.com/echarts@5.5.1/dist/echarts.min.js"><\\/script>');
+        }
+    </script>
 </head>
 <body>
 <div class="page">
@@ -57,8 +63,8 @@
     </section>
 </div>
 
+<div id="interactiveBall" title="Click to Kick!">⚽</div>
 <script src="/js/mock-data.js"></script>
 <script src="/js/player-compare-demo.js"></script>
 </body>
 </html>
-
