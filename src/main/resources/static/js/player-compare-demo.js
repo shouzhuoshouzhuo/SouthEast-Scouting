@@ -46,7 +46,8 @@
         if (state.chart) {
             return true;
         }
-        state.chart = window.echarts.init(dom.radarChart, 'dark', { renderer: 'canvas' });
+        // Do not use dark theme here, otherwise clear() leaves a dark purple fallback background.
+        state.chart = window.echarts.init(dom.radarChart, null, { renderer: 'canvas' });
         window.addEventListener("resize", function () {
             if (state.chart) {
                 state.chart.resize();
@@ -77,22 +78,90 @@
             return;
         }
 
-        // Simple parallax effect
-        document.addEventListener('mousemove', function (e) {
-            if (dom.interactiveBall.classList.contains('kicked')) {
+        const ball = dom.interactiveBall;
+        const reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        let targetX = 0;
+        let targetY = 0;
+        let currentX = 0;
+        let currentY = 0;
+        let rafId = null;
+
+        function clamp(value, min, max) {
+            return Math.max(min, Math.min(max, value));
+        }
+
+        function renderFollow() {
+            if (ball.classList.contains('kicked')) {
+                rafId = null;
                 return;
             }
-            const x = (window.innerWidth - e.pageX) / 50;
-            const y = (window.innerHeight - e.pageY) / 50;
-            dom.interactiveBall.style.transform = "translate(" + x + "px, " + y + "px)";
-        });
+            currentX += (targetX - currentX) * 0.16;
+            currentY += (targetY - currentY) * 0.16;
+            ball.style.transform = 'translate(' + currentX.toFixed(1) + 'px, ' + currentY.toFixed(1) + 'px) rotate(' + (currentX * -0.4).toFixed(1) + 'deg)';
+            if (Math.abs(targetX - currentX) > 0.1 || Math.abs(targetY - currentY) > 0.1) {
+                rafId = window.requestAnimationFrame(renderFollow);
+            } else {
+                rafId = null;
+            }
+        }
 
-        // Kicking effect
-        dom.interactiveBall.addEventListener('click', function () {
-            dom.interactiveBall.classList.add('kicked');
-            setTimeout(function () {
-                dom.interactiveBall.classList.remove('kicked');
-            }, 2000);
+        function createKickBurst() {
+            const rect = ball.getBoundingClientRect();
+            const originX = rect.left + rect.width / 2;
+            const originY = rect.top + rect.height / 2;
+            for (let i = 0; i < 14; i += 1) {
+                const dot = document.createElement('span');
+                dot.className = 'ball-trail';
+                dot.style.left = originX + 'px';
+                dot.style.top = originY + 'px';
+                const angle = (Math.PI * 2 * i) / 14;
+                const distance = 45 + Math.random() * 80;
+                dot.style.setProperty('--dx', Math.cos(angle) * distance + 'px');
+                dot.style.setProperty('--dy', Math.sin(angle) * distance + 'px');
+                document.body.appendChild(dot);
+                dot.addEventListener('animationend', function () {
+                    dot.remove();
+                });
+            }
+        }
+
+        if (!reducedMotion) {
+            document.addEventListener('mousemove', function (event) {
+                if (ball.classList.contains('kicked')) {
+                    return;
+                }
+                const normalizedX = (event.clientX / window.innerWidth - 0.5) * -1;
+                const normalizedY = (event.clientY / window.innerHeight - 0.5) * -1;
+                targetX = clamp(normalizedX * 18, -18, 18);
+                targetY = clamp(normalizedY * 18, -18, 18);
+                if (!rafId) {
+                    rafId = window.requestAnimationFrame(renderFollow);
+                }
+            });
+        }
+
+        function kickBall() {
+            if (ball.classList.contains('kicked')) {
+                return;
+            }
+            createKickBurst();
+            ball.classList.add('kicked');
+            window.setTimeout(function () {
+                ball.classList.remove('kicked');
+                targetX = 0;
+                targetY = 0;
+                if (!rafId) {
+                    rafId = window.requestAnimationFrame(renderFollow);
+                }
+            }, 900);
+        }
+
+        ball.addEventListener('click', kickBall);
+        ball.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                kickBall();
+            }
         });
     }
 
@@ -306,6 +375,12 @@
         if (state.selectedPlayers.length === 0) {
             showState("空状态：请先选择至少 1 名球员。");
             state.chart.clear();
+            // Keep the chart area transparent in empty state.
+            state.chart.setOption({
+                backgroundColor: 'transparent',
+                animation: false,
+                series: []
+            }, true);
             return;
         }
 
