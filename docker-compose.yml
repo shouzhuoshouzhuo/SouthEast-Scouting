@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: se_postgres
+    environment:
+      POSTGRES_DB: southeast_sc
+      POSTGRES_USER: se_user
+      POSTGRES_PASSWORD: se_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - se_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U se_user -d southeast_sc"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: se_redis
+    ports:
+      - "6379:6379"
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - se_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: se_pgadmin
+    depends_on:
+      - postgres
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    volumes:
+      - se_pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  se_pg_data:
+  se_redis_data:
+  se_pgadmin_data:
