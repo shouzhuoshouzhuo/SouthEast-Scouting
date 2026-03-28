@@ -6,5 +6,6 @@ public record PlayerSearchResultDTO(
     String teamName,
     String league,
     String season,
-    String position
+    String position,
+    Long statId
 ) {}

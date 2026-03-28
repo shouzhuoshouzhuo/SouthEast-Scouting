@@ -23,12 +23,13 @@ public class PlayerSearchService {
 
         return results.stream()
             .map(row -> new PlayerSearchResultDTO(
-                (Long) row[0],
+                ((Number) row[0]).longValue(),
                 (String) row[1],
                 (String) row[3],
                 (String) row[4],
                 (String) row[5],
-                (String) row[6]
+                (String) row[6],
+                row[8] != null ? ((Number) row[8]).longValue() : null
             ))
             .toList();
     }

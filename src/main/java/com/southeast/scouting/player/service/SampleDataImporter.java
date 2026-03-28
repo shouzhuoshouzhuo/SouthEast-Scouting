@@ -1,5 +1,6 @@
 package com.southeast.scouting.player.service;
 
+import tools.jackson.databind.json.JsonMapper;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import com.southeast.scouting.player.entity.Competition;
@@ -12,6 +13,7 @@ import com.southeast.scouting.player.repository.PlayerSeasonStatRepository;
 import com.southeast.scouting.player.repository.TeamRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -36,27 +38,36 @@ public class SampleDataImporter implements CommandLineRunner {
     private final PlayerRepository playerRepository;
     private final CompetitionRepository competitionRepository;
     private final PlayerSeasonStatRepository playerSeasonStatRepository;
+    private final JsonMapper jsonMapper;
 
     public SampleDataImporter(TeamRepository teamRepository,
                               PlayerRepository playerRepository,
                               CompetitionRepository competitionRepository,
-                              PlayerSeasonStatRepository playerSeasonStatRepository) {
+                              PlayerSeasonStatRepository playerSeasonStatRepository,
+                              JsonMapper jsonMapper) {
         this.teamRepository = teamRepository;
         this.playerRepository = playerRepository;
         this.competitionRepository = competitionRepository;
         this.playerSeasonStatRepository = playerSeasonStatRepository;
+        this.jsonMapper = jsonMapper;
     }
 
     @Override
+    @Transactional
     public void run(String... args) throws Exception {
         if (Boolean.parseBoolean(System.getenv().getOrDefault("APP_SKIP_SAMPLE_IMPORT", "false"))) {
             return;
         }
-        if (playerSeasonStatRepository.count() > 0) {
-            return;
-        }
         Path csvPath = Path.of(PLAYER_CSV_PATH);
         if (!Files.exists(csvPath)) {
+            return;
+        }
+        long totalStats = playerSeasonStatRepository.count();
+        long emptyMetrics = playerSeasonStatRepository.countWithEmptyObjectRawMetrics();
+        boolean force = Boolean.parseBoolean(System.getenv().getOrDefault("APP_FORCE_SAMPLE_REIMPORT", "false"));
+        if (force || (totalStats > 0 && emptyMetrics == totalStats)) {
+            playerSeasonStatRepository.deleteAllInBatch();
+        } else if (totalStats > 0) {
             return;
         }
         importSamplePlayers(csvPath, 20);
@@ -202,6 +213,32 @@ public class SampleDataImporter implements CommandLineRunner {
         stat.setOnLoan(parseBoolean(row.get("On loan")));
         stat.setSourceFile(PLAYER_CSV_PATH);
         stat.setSourceRowNum(rowNum);
+
+        Map<String, Object> rawMetrics = new HashMap<>();
+        rawMetrics.put("shotsPer90", parseDouble(row.get("Shots per 90")));
+        rawMetrics.put("shotsOnTargetPct", parseDouble(row.get("Shots on target, %")));
+        rawMetrics.put("xaPer90", parseDouble(row.get("xA per 90")));
+        rawMetrics.put("assistsPer90", parseDouble(row.get("Assists per 90")));
+        rawMetrics.put("xgPer90", parseDouble(row.get("xG per 90")));
+        rawMetrics.put("nonPenGoalsPer90", parseDouble(row.get("Non-penalty goals per 90")));
+        rawMetrics.put("passesPer90", parseDouble(row.get("Passes per 90")));
+        rawMetrics.put("accuratePassesPct", parseDouble(row.get("Accurate passes, %")));
+        rawMetrics.put("progressivePassesPer90", parseDouble(row.get("Progressive passes per 90")));
+        rawMetrics.put("accurateProgressivePassesPct", parseDouble(row.get("Accurate progressive passes, %")));
+        rawMetrics.put("touchesInBoxPer90", parseDouble(row.get("Touches in box per 90")));
+        rawMetrics.put("successfulDribblesPct", parseDouble(row.get("Successful dribbles, %")));
+        rawMetrics.put("slidingTacklesPer90", parseDouble(row.get("Sliding tackles per 90")));
+        rawMetrics.put("interceptionsPer90", parseDouble(row.get("Interceptions per 90")));
+        rawMetrics.put("shotsBlockedPer90", parseDouble(row.get("Shots blocked per 90")));
+        rawMetrics.put("aerialDuelsWonPct", parseDouble(row.get("Aerial duels won, %")));
+        rawMetrics.put("successfulDefensiveActionsPer90", parseDouble(row.get("Successful defensive actions per 90")));
+
+        try {
+            stat.setRawMetrics(jsonMapper.writeValueAsString(rawMetrics));
+        } catch (Exception e) {
+            stat.setRawMetrics("{}");
+        }
+
         playerSeasonStatRepository.save(stat);
     }
 
@@ -264,6 +301,14 @@ public class SampleDataImporter implements CommandLineRunner {
             return Boolean.FALSE;
         }
         return null;
+    }
+
+    private static Double parseDouble(String value) {
+        try {
+            return (value == null || value.isBlank()) ? null : Double.parseDouble(value.trim());
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private static LocalDate parseDate(String value) {

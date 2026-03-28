@@ -19,7 +19,8 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
                GREATEST(
                    similarity(p.display_name, :searchTerm),
                    similarity(p.full_name, :searchTerm)
-               ) AS relevance_score
+               ) AS relevance_score,
+               pss.id as stat_id
         FROM player p
         JOIN player_season_stat pss ON p.id = pss.player_id
         LEFT JOIN team t ON pss.team_id = t.id
