@@ -250,38 +250,67 @@
     }
 
     function renderSuggestions() {
-        const queryLower = state.query.toLowerCase();
-        const selectedIds = new Set(state.selectedPlayers.map((p) => p.playerId));
-        state.suggestions = getFilteredPlayers()
-            .filter(function (p) {
-                const matchName = p.playerName.toLowerCase().includes(queryLower);
-                return state.query && matchName && !selectedIds.has(p.playerId);
-            })
-            .slice(0, 8);
-
-        if (state.suggestions.length === 0) {
+        if (!state.query) {
             clearSuggestions();
             return;
         }
 
-        dom.suggestionList.innerHTML = state.suggestions.map(function (p, index) {
-            const activeClass = index === state.activeSuggestionIndex ? "active" : "";
-            return "<li class=\"suggestion-item " + activeClass + "\" data-id=\"" + p.playerId + "\">"
-                + "<div>" + p.playerName + "</div>"
-                + "<small>" + p.teamName + " | " + p.league + " | " + p.season + "</small>"
-                + "</li>";
-        }).join("");
+        const params = new URLSearchParams({ q: state.query });
+        if (state.filters.league !== '全部') params.append('league', state.filters.league);
+        if (state.filters.season !== '全部') params.append('season', state.filters.season);
+        if (state.filters.position !== '全部') params.append('position', state.filters.position);
 
-        dom.suggestionList.querySelectorAll(".suggestion-item").forEach(function (item) {
-            item.addEventListener("click", function () {
-                const candidate = state.suggestions.find((p) => p.playerId === item.getAttribute("data-id"));
-                if (candidate) {
-                    addPlayer(candidate);
+        fetch('/api/players/search?' + params)
+            .then(function (response) {
+                return response.json();
+            })
+            .then(function (results) {
+                const selectedIds = new Set(state.selectedPlayers.map((p) => p.playerId));
+                state.suggestions = results
+                    .filter(function (r) {
+                        return !selectedIds.has(r.playerId);
+                    })
+                    .map(function (r) {
+                        return {
+                            playerId: r.playerId,
+                            playerName: r.playerName,
+                            teamName: r.teamName,
+                            league: r.league,
+                            season: r.season,
+                            position: r.position,
+                            compareContext: r.teamName,
+                            metrics: {}
+                        };
+                    });
+
+                if (state.suggestions.length === 0) {
+                    clearSuggestions();
+                    return;
                 }
-            });
-        });
 
-        dom.suggestionList.classList.remove("hidden");
+                dom.suggestionList.innerHTML = state.suggestions.map(function (p, index) {
+                    const activeClass = index === state.activeSuggestionIndex ? "active" : "";
+                    return "<li class=\"suggestion-item " + activeClass + "\" data-id=\"" + p.playerId + "\">"
+                        + "<div>" + p.playerName + "</div>"
+                        + "<small>" + p.teamName + " | " + p.league + " | " + p.season + "</small>"
+                        + "</li>";
+                }).join("");
+
+                dom.suggestionList.querySelectorAll(".suggestion-item").forEach(function (item) {
+                    item.addEventListener("click", function () {
+                        const candidate = state.suggestions.find((p) => p.playerId === item.getAttribute("data-id"));
+                        if (candidate) {
+                            addPlayer(candidate);
+                        }
+                    });
+                });
+
+                dom.suggestionList.classList.remove("hidden");
+            })
+            .catch(function (error) {
+                console.error('Search failed:', error);
+                clearSuggestions();
+            });
     }
 
     function clearSuggestions() {
