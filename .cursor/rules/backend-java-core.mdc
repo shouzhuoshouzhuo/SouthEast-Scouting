@@ -1,0 +1,38 @@
+---
+description: Java后端项目核心开发约束（单机版）
+alwaysApply: true
+---
+
+# SouthEast-Scouting 后端规则
+
+## 技术与边界
+- 固定技术栈：Java 17、Spring Boot 3、PostgreSQL、Redis、Flyway。
+- 架构采用模块化单体，禁止在MVP阶段引入微服务拆分。
+- MVP仅覆盖：球员搜索、球员对比、后台导入管理。
+
+## 代码结构
+- 按 `controller/service/repository/entity/dto` 分层。
+- controller层只做参数校验和调用，不写业务逻辑。
+- service层承载业务编排；repository层只处理数据访问。
+
+## 接口与异常
+- 所有HTTP接口使用统一响应结构（如 `ApiResponse`）。
+- 使用全局异常处理器，不在controller中到处try/catch。
+- 参数校验必须使用 `jakarta.validation` 注解。
+
+## 数据与迁移
+- 任何表结构变更必须通过Flyway脚本提交。
+- 禁止直接改线上库结构；本地也优先通过迁移脚本演进。
+- 写SQL优先考虑索引命中，避免无条件大范围查询。
+
+## 并发与稳定性
+- 导入流程必须加分布式锁（如 `lock:import`）。
+- 定时任务必须加互斥锁，防止重复执行。
+- 导入必须实现幂等（建议文件hash + 唯一约束）。
+- 热点查询需缓存并防缓存击穿。
+
+## 可观测与质量
+- 新增核心接口时同步增加耗时日志（带traceId）。
+- 关键流程（导入、对比）应暴露基础指标（成功率、耗时）。
+- 新增业务逻辑优先补单元测试；导入链路补集成测试。
+

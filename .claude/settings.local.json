@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./mvnw clean:*)",
+      "Bash(cat:*)",
+      "mcp__ide__getDiagnostics",
+      "Bash(./mvnw compile:*)",
+      "Bash(./mvnw test:*)",
+      "Bash(./mvnw dependency:tree 2>&1 | grep -i \"jackson-databind\" | head -10)",
+      "Bash(./mvnw dependency:tree 2>&1 | grep -i \"JacksonAutoConfiguration\\\\|ObjectMapper\" | head -10)"
+    ]
+  }
+}

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SouthEast Scouting - 球员对比 Demo</title>
     <link rel="stylesheet" href="/css/player-compare-demo.css" />
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
 <div class="page">
@@ -45,7 +45,10 @@
     <section class="chart-panel card">
         <div class="chart-head">
             <h2>雷达图对比</h2>
-            <button id="retryButton" class="ghost-btn hidden" type="button">重试</button>
+            <div class="chart-actions">
+                <button id="advancedAnalysisBtn" class="ghost-btn" type="button">高级分析</button>
+                <button id="retryButton" class="ghost-btn hidden" type="button">重试</button>
+            </div>
         </div>
 
         <div id="stateBox" class="state-box"></div>
@@ -57,8 +60,10 @@
     </section>
 </div>
 
-<script src="/js/mock-data.js"></script>
-<script src="/js/player-compare-demo.js"></script>
+<div id="interactiveBall" title="Click to Kick!" data-tip="踢一脚" role="button" aria-label="足球互动按钮" tabindex="0">⚽</div>
+<div id="toastContainer" class="toast-container" aria-live="polite"></div>
+    <!-- 应用脚本不得依赖 ECharts 的 onload：否则 ECharts 失败时整页逻辑永不执行（下拉框会一直为空） -->
+    <script src="/js/echarts.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/echarts@5.5.1/dist/echarts.min.js'"></script>
+    <script src="/js/player-compare-demo.js"></script>
 </body>
 </html>
-
